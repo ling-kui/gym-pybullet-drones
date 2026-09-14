@@ -36,9 +36,13 @@
 - 产物：`results/baseline-*/best_model.zip`（达标即停）、`final_model.zip`、`evaluations.npz`
 - 指标：见训练日志 `results/baseline_train_log.txt` 与下方"结果"（训练完成后回填）
 
-结果（2026-09-14，200k 步）：
+结果（2026-09-14，200k 步预算，提前达标停止）：
 
-- 待回填：最终/最佳评估奖励、训练 fps、是否达到 474 阈值
+- 达标情况：42,000 步时评估奖励 474.15 ≥ 474 阈值，`StopTrainingOnRewardThreshold` 触发提前停止
+- 训练速度：约 620 steps/s（CPU，单环境）
+- 评估曲线：初始 ≈ 336 → 15k 步 ≈ 442 → 31k 步起稳定在 ≈ 472-474 → 42k 步达标
+- 产物目录：`results/baseline-09.14.2026_23.22.43/`（best_model.zip、final_model.zip、evaluations.npz）
+- 备注：评估曲线中段（9k-14k、25k-30k）出现回落，为 PPO 探索波动，正常现象
 
 ## 多机冒烟
 
