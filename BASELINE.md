@@ -43,6 +43,12 @@
 - 评估曲线：初始 ≈ 336 → 15k 步 ≈ 442 → 31k 步起稳定在 ≈ 472-474 → 42k 步达标
 - 产物目录：`results/baseline-09.14.2026_23.22.43/`（best_model.zip、final_model.zip、evaluations.npz）
 - 备注：评估曲线中段（9k-14k、25k-30k）出现回落，为 PPO 探索波动，正常现象
+- 模型验证：`PPO.load(best_model.zip)` 加载 + 240 步（5s）确定性回放回报 469.94（12s 满奖励 474），链路完整
+
+## 已知兼容性问题（已修复）
+
+torch 2.14 无法直接读取 stable-baselines3 2.9.0 传入的 zip 文件流（`PytorchStreamReader ... .data/serialization_id` miniz 错误），导致 `PPO.load()` 报"checkpoint corrupted"。
+修复方式：在 `.venv\Lib\site-packages\sitecustomize.py` 放置自动加载的垫片，将所有非 BytesIO 的可读流包装后调用原始 `torch.load`。该文件属于虚拟环境、不进仓库；重建环境时需按此说明重新放置。
 
 ## 多机冒烟
 
