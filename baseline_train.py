@@ -9,6 +9,7 @@ Example
 -------
 
     $ python baseline_train.py --multiagent false --timesteps 200000
+    $ python baseline_train.py --task formation --timesteps 400000
 
 Notes
 -----
@@ -27,6 +28,7 @@ from stable_baselines3.common.callbacks import EvalCallback, StopTrainingOnRewar
 
 from gym_pybullet_drones.envs.HoverAviary import HoverAviary
 from gym_pybullet_drones.envs.MultiHoverAviary import MultiHoverAviary
+from gym_pybullet_drones.envs.FormationAviary import FormationAviary
 from gym_pybullet_drones.utils.enums import ObservationType, ActionType
 from gym_pybullet_drones.utils.utils import str2bool
 
@@ -35,11 +37,19 @@ DEFAULT_ACT = ActionType('one_d_rpm')
 DEFAULT_AGENTS = 2
 
 
-def run(multiagent, timesteps, output_folder='results'):
+def run(task, multiagent, timesteps, output_folder='results'):
     filename = os.path.join(output_folder, 'baseline-' + datetime.now().strftime('%m.%d.%Y_%H.%M.%S'))
     os.makedirs(filename, exist_ok=True)
 
-    if not multiagent:
+    if task == 'formation':
+        train_env = make_vec_env(FormationAviary,
+                                 env_kwargs=dict(num_drones=DEFAULT_AGENTS, obs=DEFAULT_OBS, act=DEFAULT_ACT),
+                                 n_envs=1,
+                                 seed=0
+                                 )
+        eval_env = FormationAviary(num_drones=DEFAULT_AGENTS, obs=DEFAULT_OBS, act=DEFAULT_ACT)
+        target_reward = 1050.
+    elif not multiagent:
         train_env = make_vec_env(HoverAviary,
                                  env_kwargs=dict(obs=DEFAULT_OBS, act=DEFAULT_ACT),
                                  n_envs=1,
@@ -77,8 +87,9 @@ def run(multiagent, timesteps, output_folder='results'):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Configurable PPO baseline for HoverAviary/MultiHoverAviary')
-    parser.add_argument('--multiagent',     default=False,        type=str2bool, help='Train MultiHoverAviary instead of HoverAviary (default: False)', metavar='')
+    parser = argparse.ArgumentParser(description='Configurable PPO baseline (hover/multi-hover/formation)')
+    parser.add_argument('--task',           default='hover',      type=str,      help='Training task: hover, formation (default: hover)', metavar='', choices=['hover', 'formation'])
+    parser.add_argument('--multiagent',     default=False,        type=str2bool, help='Train MultiHoverAviary instead of HoverAviary (default: False, hover task only)', metavar='')
     parser.add_argument('--timesteps',      default=200000,       type=int,      help='Total PPO training timesteps (default: 200000)', metavar='')
     parser.add_argument('--output_folder',  default='results',    type=str,      help='Folder where to save checkpoints (default: "results")', metavar='')
     ARGS = parser.parse_args()
